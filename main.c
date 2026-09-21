@@ -1,62 +1,95 @@
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <time.h>
+#include <Windows.h>
 
-void insertItem(int* arr1, int* arr2, int size) {
-    int number = rand() % size;
-    *arr1 = number;
-    *arr2 = number;
+void printArray(int* arr, int size); // 배열 출력 함수, 확인용으로 넣었음.
+void swapElement(int* a, int* b); 
+void selectionSort(int* arr, int size); // 제자리 선택 정렬 알고리즘.
+void inPlaceInsertionSort(int* arr, int size); // 제자리 삽입 정렬 알고리즘.
+
+int main(void) {
+	int* A = NULL, * B = NULL;
+	int i, count; // count는 A, B의 크기
+	
+	LARGE_INTEGER ticksPerSec;
+	LARGE_INTEGER start, end, diff;
+
+	srand(time(NULL));
+	scanf("%d", &count);
+
+	// A, B 동적 할당
+	A = (int*)malloc(sizeof(int) * count);
+	B = (int*)malloc(sizeof(int) * count);
+	
+	// A, B 초기화
+	for (i = 0; i < count; i++) {
+		int number;
+		number = rand() % count + 1;
+		*(A + i) = number;
+		*(B + i) = number;
+	}
+
+	QueryPerformanceFrequency(&ticksPerSec);
+	QueryPerformanceCounter(&start);
+	selectionSort(A, count);
+	QueryPerformanceCounter(&end);
+
+	diff.QuadPart = end.QuadPart - start.QuadPart;
+	printf("%.9fms\n", ((double)diff.QuadPart / (double)ticksPerSec.QuadPart) * 1000);
+
+	QueryPerformanceFrequency(&ticksPerSec);
+	QueryPerformanceCounter(&start);
+	inPlaceInsertionSort(B, count);
+	QueryPerformanceCounter(&end);
+
+	diff.QuadPart = end.QuadPart - start.QuadPart;
+	printf("%.9fms\n", ((double)diff.QuadPart / (double)ticksPerSec.QuadPart) * 1000);
+
+	free(A);
+	free(B);
+
+	return 0;
+}
+
+void printArray(int* arr, int size) {
+	int i;
+	for (i = 0; i < size; i++) { printf(" %d", *(arr + i)); }
+	printf("\n");
+	return;
+}
+
+void swapElement(int* a, int* b) {
+	int temp = *a;
+	*a = *b;
+	*b = temp;
 }
 
 void selectionSort(int* arr, int size) {
-    if(size <= 1) { return; }
-    int i, j, min, tmp;
-
-    for(i = 0; i < size - 1; i++) {
-        min = i;
-        for(j = i + 1; j < size; j++) {
-            if(*(arr + j) < *(arr + min)) { min = j; }
-        }
-        tmp = *(arr + i);
-        *(arr + i) = *(arr + min);
-        *(arr + min) = tmp;
-    }
+	int i, j, min;
+	for (i = 0; i < size - 1; i++) {
+		min = i;
+		for (j = i + 1; j < size; j++) {
+			if (*(arr + j) < *(arr + min)) {
+				min = j;
+			}
+		}
+		swapElement(arr + i, arr + min);
+	}
+	return;
 }
 
-void insertionSort(int* arr, int size) {
-    int i, j, tmp;
-    if(size <= 1) { return; }
-
-    for(i = 1; i < size; i++) {
-        tmp = *(arr + i);
-        j = i - 1;
-        while((j >= 0) && (*(arr + j) > tmp)) {
-            *(arr + j + 1) = *(arr + j);
-            j = j - 1;
-        }
-        *(arr + j + 1) = tmp;
-    }
-}
-
-void print(int* arr, int size) {
-    int i;
-    for(i = 0; i < size; i++) { printf(" %d", *(arr+i)); }
-    printf("\n");
-}
-
-int main(void) {
-    int* arr1 = NULL, *arr2 = NULL;
-    int size, i;
-    srand(time(NULL));
-    scanf("%d", &size);
-
-    arr1 = (int *)malloc(sizeof(int) * size);
-    arr2 = (int *)malloc(sizeof(int) * size);
-
-    for(i = 0; i < size; i++) { insertItem(arr1+i, arr2+i, size); }
-
-    insertionSort(arr1, size);
-    print(arr1, size);
-    
-    return 0;
+void inPlaceInsertionSort(int* arr, int size) {
+	int i, j, save;
+	for (i = 1; i < size; i++) {
+		save = *(arr + i);
+		j = i - 1;
+		while ((j >= 0) && (*(arr + j) > save)) {
+			*(arr + j + 1) = *(arr + j);
+			j -= 1;
+		}
+		*(arr + j + 1) = save;
+	}
+	return;
 }
